@@ -1,33 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 
-// Tek Satırda
-/* 
-    Yorum
-    Satırı
-*/
+const Product_Images = (props) => {
+  const [resim, setResim] = useState("");
 
-const Product_Images = () => {
+  function resimDegis(event) {
+    setResim(event.target.src);
+  }
+
   return (
     <article className="gallery-wrap">
-      {/* Yorum*/}
       <div className="img-big-wrap">
         <a href="#">
-          <img src="/images/items/12.jpg" alt="" />
+          <img src={resim === "" ? props.resimler.bir : resim} alt="" />
         </a>
       </div>
       <div className="thumbs-wrap">
-        <a href="#" className="item-thumb">
-          <img src="/images/items/12-1.jpg" alt="" />
-        </a>
-        <a href="#" className="item-thumb">
-          <img src="/images/items/12-2.jpg" alt="" />
-        </a>
-        <a href="#" className="item-thumb">
-          <img src="/images/items/12.jpg" alt="" />
-        </a>
-        <a href="#" className="item-thumb">
-          <img src="/images/items/4.jpg" alt="" />
-        </a>
+        <span className="item-thumb">
+          <img onClick={resimDegis} src={props.resimler.bir} alt="" />
+        </span>
+        <span className="item-thumb">
+          <img onClick={resimDegis} src={props.resimler.iki} alt="" />
+        </span>
+        <span className="item-thumb">
+          <img onClick={resimDegis} src={props.resimler.uc} alt="" />
+        </span>
+        <span className="item-thumb">
+          <img onClick={resimDegis} src={props.resimler.dort} alt="" />
+        </span>
       </div>
     </article>
   );

@@ -1,18 +1,20 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-const Product_Card = () => {
+const Product_Card = (props) => {
   return (
     <div className="col-md-3">
-      <a href="#" className="card card-product-grid">
+      <Link to={`/urun/${props.id}`} className="card card-product-grid">
         <div className="img-wrap">
-          <img src="/images/items/2.jpg" />
+          <img src={props.resim} />
         </div>
         <div className="info-wrap text-center ">
-          <p className="title text-truncate">
-            Bose Headphones 700 best for Gaming
-          </p>
+          <p className="title text-truncate">{props.isim}</p>
           <ul className="rating-stars">
-            <li style={{ width: "80%" }} className="stars-active">
+            <li
+              style={{ width: `${props.puan * 20}%` }}
+              className="stars-active"
+            >
               <i className="fa fa-star"></i>
               <i className="fa fa-star"></i>
               <i className="fa fa-star"></i>
@@ -27,13 +29,13 @@ const Product_Card = () => {
               <i className="fa fa-star"></i>
             </li>
           </ul>
-          <small className="text-muted">34</small>
+          <small className="text-muted">{props.yildizsayisi}</small>
           <div className="price-wrap mt-2 text-center">
-            <span className="price">$399.95</span>
-            <del className="price-old">$449.99</del>
+            <span className="price">₺{props.ind_fiyat}</span>
+            <del className="price-old">₺{props.normal_fiyat}</del>
           </div>
         </div>
-      </a>
+      </Link>
     </div>
   );
 };

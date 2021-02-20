@@ -1,6 +1,6 @@
 import React from "react";
 
-const Product_Info = () => {
+const Product_Info = (props) => {
   return (
     <section className="section-pagetop bg">
       <div className="container">
@@ -10,10 +10,12 @@ const Product_Info = () => {
               <a href="/">Anasayfa</a>
             </li>
             <li className="breadcrumb-item">
-              <a href="#">Kategori</a>
+              <a href={`/kategori/${props.kategori_url}`}>
+                {props.kategori_isim}
+              </a>
             </li>
             <li className="breadcrumb-item active" aria-current="page">
-              Ürün ismi
+              {props.isim}
             </li>
           </ol>
         </nav>
