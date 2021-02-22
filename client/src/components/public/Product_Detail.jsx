@@ -177,7 +177,7 @@ const Product_Detail = () => {
         </div>
       </section>
 
-      <Product_Similar kategori_url={detay.kategori_url} />
+      <Product_Similar kategori_url={detay.kategori_url} id={parametreler.id} />
     </React.StrictMode>
   );
 };

@@ -57,10 +57,23 @@ const urunSema = {
   satilma: Number,
   cinsiyet: String,
 };
+
+const yorumSema = {
+  urun_id: String,
+  isim: String,
+  icerik: String,
+  tarih: String,
+  kullanici_id: String,
+  yildiz: Number,
+  like: Number,
+  dislike: Number,
+};
+
 ///////// MONGODB ŞEMALARI - BİTİŞ
 
 ///////// MONGODB MODELLERİ - BAŞLANGIÇ
 const Urun = mongoose.model("Urun", urunSema);
+const Yorum = mongoose.model("Yorum", yorumSema);
 ///////// MONGODB MODELLERİ - BİTİŞ
 
 app.get("/", function (req, res) {
@@ -135,9 +148,12 @@ app.get("/api/urun/detay/:id", function (req, res) {
   });
 });
 
-app.get("/api/urun/benzerurunler/:kategori_url", function (req, res) {
+app.get("/api/urun/benzerurunler/:kategori_url/:urunid", function (req, res) {
   Urun.find(
-    { kategori_url: req.params.kategori_url },
+    {
+      kategori_url: req.params.kategori_url,
+      _id: { $nin: req.params.urunid },
+    },
     function (err, gelenVeri) {
       if (!err) {
         res.send(gelenVeri);
@@ -169,6 +185,67 @@ app.get("/api/populerurunler", function (req, res) {
   })
     .sort({ satilma: -1 })
     .limit(4);
+});
+
+//////////////////////////             YENİ ÜRÜNLER             ///////////////////////////////
+app.get("/api/yeniurunler", function (req, res) {
+  Urun.find({}, function (err, gelenVeri) {
+    if (!err) {
+      res.send(gelenVeri);
+    } else {
+      res.send([
+        {
+          sonuc: "hata",
+        },
+      ]);
+    }
+  })
+    .sort({ _id: -1 })
+    .limit(4);
+});
+
+////////////////////////               YORUMLAR                ////////////////////////////////
+app.get("/api/yorumlar/:id", function (req, res) {
+  Yorum.find({ urun_id: req.params.id }, function (err, gelenVeri) {
+    if (!err) {
+      res.send(gelenVeri);
+    } else {
+      res.send([
+        {
+          sonuc: "hata",
+        },
+      ]);
+    }
+  });
+});
+
+app.post("/api/yorum", function (req, res) {
+  var yorum = new Yorum({
+    urun_id: req.body.urun_id,
+    isim: req.body.isim,
+    icerik: req.body.icerik,
+    tarih: "25 Şubat",
+    kullanici_id: req.body.kullanici_id,
+    yildiz: req.body.yildiz,
+    like: 0,
+    dislike: 0,
+  });
+
+  /*
+
+  3 yorum 5-4-3
+  4 yorum 5-4-3-1
+  4 -> 3.25
+
+  */
+
+  yorum.save(function (err) {
+    if (!err) {
+      //// daha sonra..
+    } else {
+      res.send({ sonuc: "hata" });
+    }
+  });
 });
 
 app.listen(5000);

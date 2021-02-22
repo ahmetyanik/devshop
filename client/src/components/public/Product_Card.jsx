@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const Product_Card = (props) => {
   return (
     <div className="col-md-3">
-      <Link to={`/urun/${props.id}`} className="card card-product-grid">
+      <a href={`/urun/${props.id}`} className="card card-product-grid">
         <div className="img-wrap">
           <img src={props.resim} />
         </div>
@@ -35,7 +35,7 @@ const Product_Card = (props) => {
             <del className="price-old">₺{props.normal_fiyat}</del>
           </div>
         </div>
-      </Link>
+      </a>
     </div>
   );
 };
