@@ -170,6 +170,71 @@ app.get("/api/urun/benzerurunler/:kategori_url/:urunid", function (req, res) {
     .limit(4);
 });
 
+/////////////////////////            KATEGORİ SAYFASI           /////////////////////////////
+app.get("/api/kategori/:kategori_url/:bulundugu_sayfa", function (req, res) {
+  var sayfa = req.params.bulundugu_sayfa;
+  var secim = req.query.secim;
+  var markalar =
+    req.query.marka === null || req.query.marka === "" ? "" : req.query.marka;
+
+  var kriter = {};
+  var arama = { kategori_url: req.params.kategori_url };
+
+  if (secim === "1") {
+    kriter = {
+      _id: -1,
+    };
+  } else if (secim === "2") {
+    kriter = {
+      satilma: -1,
+    };
+  } else if (secim === "3") {
+    kriter = {
+      ind_fiyat: 1,
+    };
+  }
+
+  if (markalar !== "") {
+    var markalarArray = markalar.split(",");
+    console.log(markalarArray);
+    if (markalarArray.length > 0) {
+      arama["marka"] = {
+        $in: markalarArray,
+      };
+    }
+  }
+  Urun.find(arama, function (err, gelenVeri) {
+    if (!err) {
+      res.send(gelenVeri);
+    } else {
+      res.send(err);
+    }
+  })
+    .sort(kriter)
+    .limit(6)
+    .skip((sayfa - 1) * 6);
+});
+
+app.get("/api/urunsayisi/:kategori_url", function (req, res) {
+  var sayfa = req.params.bulundugu_sayfa;
+  Urun.find(
+    { kategori_url: req.params.kategori_url },
+    function (err, gelenVeri) {
+      if (!err) {
+        res.send({
+          toplam: gelenVeri.length,
+        });
+      } else {
+        res.send([
+          {
+            sonuc: "hata",
+          },
+        ]);
+      }
+    }
+  );
+});
+
 /////////////////////////             POPÜLER ÜRÜNLER           //////////////////////////////
 app.get("/api/populerurunler", function (req, res) {
   Urun.find({}, function (err, gelenVeri) {
