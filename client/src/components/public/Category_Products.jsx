@@ -6,6 +6,9 @@ import axios from "axios";
 const Category_Products = () => {
   const parametreler = useParams();
   const query = new URLSearchParams(useLocation().search);
+  const marka = query.get("marka") === null ? [] : query.get("marka");
+  const min = query.get("min") === null ? 0 : query.get("min");
+  const max = query.get("max") === null ? 0 : query.get("max");
 
   const [urunSayisi, setUrunSayisi] = useState(0);
   const [urunler, setUrunler] = useState([]);
@@ -14,7 +17,6 @@ const Category_Products = () => {
     query.get("sayfa") === null ? 1 : parseInt(query.get("sayfa"));
 
   const secim = query.get("secim") === null ? "1" : query.get("secim");
-  const marka = query.get("marka") === null ? "" : query.get("marka");
 
   var yaziliSecim = "Yeni ürünler";
 
@@ -26,7 +28,14 @@ const Category_Products = () => {
 
   function urunSayisiniAl() {
     var adres =
-      "http://localhost:5000/api/urunsayisi/" + parametreler.kategori_url;
+      "http://localhost:5000/api/urunsayisi/" +
+      parametreler.kategori_url +
+      "?marka=" +
+      marka +
+      "&min=" +
+      min +
+      "&max=" +
+      max;
     axios.get(adres).then(function (gelenVeri) {
       console.log("toplam", gelenVeri.data.toplam);
       setUrunSayisi(gelenVeri.data.toplam);
@@ -42,7 +51,11 @@ const Category_Products = () => {
       "?secim=" +
       secim +
       "&marka=" +
-      marka;
+      marka +
+      "&min=" +
+      min +
+      "&max=" +
+      max;
 
     axios.get(adres).then(function (gelenVeri) {
       setUrunler(gelenVeri.data);
@@ -59,22 +72,37 @@ const Category_Products = () => {
         "http://localhost:3000/kategori/" +
         parametreler.kategori_url +
         "?sayfa=1" +
-        "&secim=1&marka=" +
-        marka;
+        "&secim=1" +
+        "&marka=" +
+        marka +
+        "&min=" +
+        min +
+        "&max=" +
+        max;
     } else if (event.target.value === "Çok satanlar") {
       adres =
         "http://localhost:3000/kategori/" +
         parametreler.kategori_url +
         "?sayfa=1" +
-        "&secim=2&marka=" +
-        marka;
+        "&secim=2" +
+        "&marka=" +
+        marka +
+        "&min=" +
+        min +
+        "&max=" +
+        max;
     } else if (event.target.value === "En düşük fiyat") {
       adres =
         "http://localhost:3000/kategori/" +
         parametreler.kategori_url +
         "?sayfa=1" +
-        "&secim=3&marka=" +
-        marka;
+        "&secim=3" +
+        "&marka=" +
+        marka +
+        "&min=" +
+        min +
+        "&max=" +
+        max;
     }
 
     window.location.href = adres;
@@ -139,7 +167,7 @@ const Category_Products = () => {
           <li className="page-item">
             <a
               className="page-link"
-              href={`?sayfa=1&secim=${secim}&marka=${marka}`}
+              href={`?sayfa=1&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
             >
               İlk Sayfa
             </a>
@@ -150,7 +178,7 @@ const Category_Products = () => {
               <li className="page-item active">
                 <a
                   className="page-link"
-                  href={`?sayfa=${bulunduguSayfa}&secim=${secim}&marka=${marka}`}
+                  href={`?sayfa=${bulunduguSayfa}&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
                 >
                   1
                 </a>
@@ -159,7 +187,7 @@ const Category_Products = () => {
                 <li className="page-item">
                   <a
                     className="page-link"
-                    href={`?sayfa=2&secim=${secim}&marka=${marka}`}
+                    href={`?sayfa=2&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
                   >
                     2
                   </a>
@@ -169,7 +197,7 @@ const Category_Products = () => {
                 <li className="page-item">
                   <a
                     className="page-link"
-                    href={`?sayfa=3&secim=${secim}&marka=${marka}`}
+                    href={`?sayfa=3&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
                   >
                     3
                   </a>
@@ -185,7 +213,7 @@ const Category_Products = () => {
                   className="page-link"
                   href={`?sayfa=${
                     bulunduguSayfa - 1
-                  }&secim=${secim}&marka=${marka}`}
+                  }&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
                 >
                   {bulunduguSayfa - 1}
                 </a>
@@ -194,7 +222,7 @@ const Category_Products = () => {
               <li className="page-item active">
                 <a
                   className="page-link"
-                  href={`?sayfa=${bulunduguSayfa}&secim=${secim}&marka=${marka}`}
+                  href={`?sayfa=${bulunduguSayfa}&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
                 >
                   {bulunduguSayfa}
                 </a>
@@ -206,7 +234,7 @@ const Category_Products = () => {
                     className="page-link"
                     href={`?sayfa=${
                       bulunduguSayfa + 1
-                    }&secim=${secim}&marka=${marka}`}
+                    }&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
                   >
                     {bulunduguSayfa + 1}
                   </a>
@@ -220,7 +248,7 @@ const Category_Products = () => {
               className="page-link"
               href={`?sayfa=${
                 parseInt(urunSayisi / 6) + 1
-              }&secim=${secim}&marka=${marka}`}
+              }&secim=${secim}&marka=${marka}&min=${min}&max=${max}`}
             >
               Son Sayfa
             </a>

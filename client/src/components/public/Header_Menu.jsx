@@ -1,68 +1,35 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 const Header_Menu = () => {
+  const [kategoriler, setKategoriler] = useState([]);
+
+  function kategorileriAl() {
+    axios
+      .get("http://localhost:5000/api/kategori_liste")
+      .then(function (gelenVeri) {
+        setKategoriler(gelenVeri.data);
+      });
+  }
+
+  useEffect(kategorileriAl, []);
+
   return (
     <ul className="navbar-nav">
       <li className="nav-item">
-        <a className="nav-link pl-0" href="#">
-          {" "}
-          <strong>All category</strong>
+        <a className="nav-link pl-0" href="/">
+          <strong>Anasayfa</strong>
         </a>
       </li>
-      <li className="nav-item">
-        <a className="nav-link" href="#">
-          Fashion
-        </a>
-      </li>
-      <li className="nav-item">
-        <a className="nav-link" href="#">
-          Supermarket
-        </a>
-      </li>
-      <li className="nav-item">
-        <a className="nav-link" href="#">
-          Electronics
-        </a>
-      </li>
-      <li className="nav-item">
-        <a className="nav-link" href="#">
-          Baby &amp Toys
-        </a>
-      </li>
-      <li className="nav-item">
-        <a className="nav-link" href="#">
-          Fitness sport
-        </a>
-      </li>
-      <li className="nav-item dropdown">
-        <a
-          className="nav-link dropdown-toggle"
-          href="http://example.com"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
-        >
-          More
-        </a>
-        <div className="dropdown-menu">
-          <a className="dropdown-item" href="#">
-            Foods and Drink
-          </a>
-          <a className="dropdown-item" href="#">
-            Home interior
-          </a>
-          <div className="dropdown-divider"></div>
-          <a className="dropdown-item" href="#">
-            Category 1
-          </a>
-          <a className="dropdown-item" href="#">
-            Category 2
-          </a>
-          <a className="dropdown-item" href="#">
-            Category 3
-          </a>
-        </div>
-      </li>
+      {kategoriler.map(function (kategori) {
+        return (
+          <li className="nav-item">
+            <a className="nav-link" href={`/kategori/${kategori.kategori_url}`}>
+              {kategori.kategori_isim}
+            </a>
+          </li>
+        );
+      })}
     </ul>
   );
 };
