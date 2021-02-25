@@ -4,6 +4,9 @@ import Product_Info from "./Product_Info.jsx";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import Product_Similar from "./Product_Similar.jsx";
+import { Cookies, useCookies } from "react-cookie";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Product_Detail = () => {
   const [detay, setDetay] = useState({
@@ -30,6 +33,11 @@ const Product_Detail = () => {
     },
   });
 
+  const [cookies, setCookie] = useCookies(["sepet"]);
+  const [miktar, setMiktar] = useState(1);
+  const [size, setSize] = useState("S");
+  const [stokDurumu, setStokDurumu] = useState(true);
+
   const parametreler = useParams();
 
   function verileriAl() {
@@ -43,8 +51,77 @@ const Product_Detail = () => {
 
   useEffect(verileriAl, []);
 
+  function sepeteEkle(event) {
+    var bosArray = new Cookies().get("sepet");
+    if (bosArray === undefined) {
+      bosArray = [];
+    }
+
+    var varMi = false;
+
+    bosArray.forEach((element) => {
+      if (element.id === detay._id && element.size === size) {
+        varMi = true;
+
+        element.miktar += miktar;
+      }
+    });
+
+    if (!varMi) {
+      bosArray.push({
+        id: detay._id,
+        isim: detay.isim,
+        marka: detay.marka,
+        fiyat: detay.ind_fiyat,
+        resim: detay.resimler.bir,
+        miktar: miktar,
+        size: size,
+      });
+    }
+    toast.success("Sepete eklendi.");
+    setCookie("sepet", bosArray, { path: "/" });
+
+    console.log("cookie", bosArray);
+  }
+
+  function artir() {
+    if (miktar < 15) {
+      setMiktar(miktar + 1);
+      stokKontrol(miktar + 1);
+    }
+  }
+
+  function azalt() {
+    if (miktar > 1) {
+      setMiktar(miktar - 1);
+      stokKontrol(miktar - 1);
+    }
+  }
+
+  function sizeSecildi(event) {
+    setSize(event.target.value);
+    stokKontrol(miktar);
+  }
+
+  function stokKontrol(sayi) {
+    if (size === "S") {
+      if (sayi > detay.stok.s) setStokDurumu(false);
+      else setStokDurumu(true);
+    } else if (size === "M") {
+      if (sayi > detay.stok.m) setStokDurumu(false);
+      else setStokDurumu(true);
+    } else if (size === "L") {
+      if (sayi > detay.stok.l) setStokDurumu(false);
+      else setStokDurumu(true);
+    } else if (size === "XL") {
+      if (sayi > detay.stok.xl) setStokDurumu(false);
+      else setStokDurumu(true);
+    }
+  }
+
   return (
     <React.StrictMode>
+      <ToastContainer />
       <Product_Info
         isim={detay.isim}
         kategori_isim={detay.kategori}
@@ -103,6 +180,7 @@ const Product_Detail = () => {
                       <div className="input-group mb-3 input-spinner">
                         <div className="input-group-prepend">
                           <button
+                            onClick={artir}
                             className="btn btn-light"
                             type="button"
                             id="button-plus"
@@ -110,9 +188,14 @@ const Product_Detail = () => {
                             +
                           </button>
                         </div>
-                        <input type="text" className="form-control" value="1" />
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={miktar}
+                        />
                         <div className="input-group-append">
                           <button
+                            onClick={azalt}
                             className="btn btn-light"
                             type="button"
                             id="button-minus"
@@ -127,9 +210,11 @@ const Product_Detail = () => {
                       <div className="mt-2">
                         <label className="custom-control custom-radio custom-control-inline">
                           <input
+                            defaultChecked="true"
+                            onChange={sizeSecildi}
+                            value="S"
                             type="radio"
                             name="select_size"
-                            checked=""
                             className="custom-control-input"
                           />
                           <div className="custom-control-label">S</div>
@@ -137,6 +222,8 @@ const Product_Detail = () => {
 
                         <label className="custom-control custom-radio custom-control-inline">
                           <input
+                            onChange={sizeSecildi}
+                            value="M"
                             type="radio"
                             name="select_size"
                             className="custom-control-input"
@@ -146,6 +233,8 @@ const Product_Detail = () => {
 
                         <label className="custom-control custom-radio custom-control-inline">
                           <input
+                            onChange={sizeSecildi}
+                            value="L"
                             type="radio"
                             name="select_size"
                             className="custom-control-input"
@@ -154,6 +243,8 @@ const Product_Detail = () => {
                         </label>
                         <label className="custom-control custom-radio custom-control-inline">
                           <input
+                            onChange={sizeSecildi}
+                            value="XL"
                             type="radio"
                             name="select_size"
                             className="custom-control-input"
@@ -163,13 +254,22 @@ const Product_Detail = () => {
                       </div>
                     </div>
                   </div>
-                  <a href="#" className="btn  btn-primary">
+                  <button
+                    className={`btn  btn-primary ${
+                      stokDurumu === false && "disabled"
+                    }`}
+                  >
                     Hemen Satın Al
-                  </a>
-                  <a href="#" className="btn  btn-outline-primary ml-2">
-                    <span className="text">Sepete Ekle</span>{" "}
-                    <i className="fas fa-shopping-cart"></i>{" "}
-                  </a>
+                  </button>
+                  <button
+                    onClick={sepeteEkle}
+                    className={`btn btn-outline-primary ml-2 ${
+                      stokDurumu === false && "disabled"
+                    }`}
+                  >
+                    <span className="text">Sepete Ekle</span>
+                    <i className="fas fa-shopping-cart"></i>
+                  </button>
                 </article>
               </main>
             </div>

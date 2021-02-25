@@ -1,8 +1,12 @@
 import React from "react";
+import { useCookies } from "react-cookie";
+import CartPage_Product from "../public/CartPage_Product";
 import Footer from "../public/Footer";
 import Header from "../public/Header";
 
 const CartPage = () => {
+  const [cookies, setCookie] = useCookies(["sepet"]);
+
   return (
     <React.StrictMode>
       <Header />
@@ -16,9 +20,7 @@ const CartPage = () => {
                   <thead className="text-muted">
                     <tr className="small text-uppercase">
                       <th scope="col">Product</th>
-                      <th scope="col" width="120">
-                        Quantity
-                      </th>
+                      <th scope="col" width="120"></th>
                       <th scope="col" width="120">
                         Price
                       </th>
@@ -28,106 +30,21 @@ const CartPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>
-                        <figure className="itemside align-items-center">
-                          <div className="aside">
-                            <img
-                              src="/images/items/11.jpg"
-                              className="img-sm"
-                              alt=""
+                    {cookies.sepet !== undefined && cookies.sepet.length > 0
+                      ? cookies.sepet.map(function (urun) {
+                          return (
+                            <CartPage_Product
+                              key={urun.id}
+                              id={urun.id}
+                              isim={urun.isim}
+                              resim={urun.resim}
+                              size={urun.size}
+                              miktar={urun.miktar}
+                              fiyat={urun.fiyat}
                             />
-                          </div>
-                          <figcaption className="info">
-                            <a href="#" className="title text-dark">
-                              Camera Canon EOS M50 Kit
-                            </a>
-                            <p className="text-muted small">
-                              Matrix: 25 Mpx <br /> Brand: Canon
-                            </p>
-                          </figcaption>
-                        </figure>
-                      </td>
-                      <td>
-                        <select className="form-control">
-                          <option>1</option>
-                          <option>2</option>
-                          <option>3</option>
-                          <option>4</option>
-                        </select>
-                      </td>
-                      <td>
-                        <div className="price-wrap">
-                          <var className="price">$1156.00</var>
-                          <small className="text-muted"> $315.20 each </small>
-                        </div>
-                      </td>
-                      <td className="text-right">
-                        <a
-                          data-original-title="Save to Wishlist"
-                          title=""
-                          href=""
-                          className="btn btn-light"
-                          data-toggle="tooltip"
-                        >
-                          {" "}
-                          <i className="fa fa-heart"></i>
-                        </a>
-                        <a href="" className="btn btn-light">
-                          {" "}
-                          Remove
-                        </a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <figure className="itemside align-items-center">
-                          <div className="aside">
-                            <img
-                              src="/images/items/10.jpg"
-                              className="img-sm"
-                              alt=""
-                            />
-                          </div>
-                          <figcaption className="info">
-                            <a href="#" className="title text-dark">
-                              ADATA Premier ONE microSDXC
-                            </a>
-                            <p className="text-muted small">
-                              Size: 256 GB <br /> Brand: ADATA{" "}
-                            </p>
-                          </figcaption>
-                        </figure>
-                      </td>
-                      <td>
-                        <select className="form-control">
-                          <option>1</option>
-                          <option>2</option>
-                          <option>3</option>
-                          <option>4</option>
-                        </select>
-                      </td>
-                      <td>
-                        <div className="price-wrap">
-                          <var className="price">$149.97</var>
-                          <small className="text-muted"> $75.00 each </small>
-                        </div>
-                      </td>
-                      <td className="text-right">
-                        <a
-                          data-original-title="Save to Wishlist"
-                          title=""
-                          href=""
-                          className="btn btn-light"
-                          data-toggle="tooltip"
-                        >
-                          <i className="fa fa-heart"></i>
-                        </a>
-                        <a href="" className="btn btn-light btn-round">
-                          Remove
-                        </a>
-                      </td>
-                    </tr>
+                          );
+                        })
+                      : ""}
                   </tbody>
                 </table>
 
