@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
+import { Cookies, useCookies } from "react-cookie";
 
 const CartPage_Product = (props) => {
   const [cookies, setCookie] = useCookies(["sepet"]);
@@ -30,17 +30,21 @@ const CartPage_Product = (props) => {
   });
   const [miktar, setMiktar] = useState(1);
   const [size, setSize] = useState(1);
-  const [stokDurumu, setStokDurumu] = useState(false);
+  const [stokDurumu, setStokDurumu] = useState(true);
 
   function artir() {
-    if (miktar < 15) {
+    if (miktar < 15 && miktar < stokSayisiAl()) {
+      sepeteEkle(miktar + 1);
       setMiktar(miktar + 1);
       stokKontrol(miktar + 1);
+    } else {
+      setStokDurumu(false);
     }
   }
 
   function azalt() {
     if (miktar > 1) {
+      sepeteEkle(miktar - 1);
       setMiktar(miktar - 1);
       stokKontrol(miktar - 1);
     }
@@ -62,16 +66,48 @@ const CartPage_Product = (props) => {
     }
   }
 
+  function stokSayisiAl() {
+    if (size === "S") {
+      return detay.stok.s;
+    } else if (size === "M") {
+      return detay.stok.m;
+    } else if (size === "L") {
+      return detay.stok.l;
+    } else if (size === "XL") {
+      return detay.stok.xl;
+    }
+  }
+
   function bilgileriAl() {
     setMiktar(props.miktar);
     setSize(props.size);
     axios
       .get("http://localhost:5000/api/urun/detay/" + props.id)
       .then(function (gelenVeriler) {
-        console.log(gelenVeriler.data[0]);
-
-        setDetay(gelenVeriler.data[0]);
+        console.log(
+          props.miktar,
+          stokSayisiIlkDurumKontrol(gelenVeriler.data[0].stok)
+        );
+        if (
+          props.miktar > stokSayisiIlkDurumKontrol(gelenVeriler.data[0].stok)
+        ) {
+          sepettenKaldir();
+        } else {
+          setDetay(gelenVeriler.data[0]);
+        }
       });
+  }
+
+  function stokSayisiIlkDurumKontrol(stok) {
+    if (props.size === "S") {
+      return stok.s;
+    } else if (props.size === "M") {
+      return stok.m;
+    } else if (props.size === "L") {
+      return stok.l;
+    } else if (props.size === "XL") {
+      return stok.xl;
+    }
   }
 
   function sepettenKaldir() {
@@ -85,6 +121,21 @@ const CartPage_Product = (props) => {
     });
 
     setCookie("sepet", yeniArray, { path: "/" });
+  }
+
+  function sepeteEkle(sayi) {
+    var bosArray = new Cookies().get("sepet");
+    if (bosArray === undefined) {
+      bosArray = [];
+    }
+
+    bosArray.forEach((element) => {
+      if (element.id === detay._id && element.size === size) {
+        element.miktar = sayi;
+      }
+    });
+
+    setCookie("sepet", bosArray, { path: "/" });
   }
 
   useEffect(bilgileriAl, [props.miktar !== undefined]);
@@ -107,7 +158,7 @@ const CartPage_Product = (props) => {
         </figure>
       </td>
       <td>
-        <div className="input-group mb-3 input-spinner d-none">
+        <div className="input-group mb-3 input-spinner">
           <div className="input-group-prepend ">
             <button
               onClick={artir}

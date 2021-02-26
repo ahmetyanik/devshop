@@ -7,6 +7,14 @@ import Header from "../public/Header";
 const CartPage = () => {
   const [cookies, setCookie] = useCookies(["sepet"]);
 
+  var toplamTutar = 0;
+
+  if (cookies.sepet !== undefined) {
+    for (var i = 0; i < cookies.sepet.length; i++) {
+      toplamTutar += cookies.sepet[i].fiyat * cookies.sepet[i].miktar;
+    }
+  }
+
   return (
     <React.StrictMode>
       <Header />
@@ -19,13 +27,15 @@ const CartPage = () => {
                 <table className="table table-borderless table-shopping-cart">
                   <thead className="text-muted">
                     <tr className="small text-uppercase">
-                      <th scope="col">Product</th>
-                      <th scope="col" width="120"></th>
+                      <th scope="col">Ürün</th>
                       <th scope="col" width="120">
-                        Price
+                        Adet
+                      </th>
+                      <th scope="col" width="120">
+                        Fiyat
                       </th>
                       <th scope="col" className="text-right" width="200">
-                        {" "}
+                        İşlem
                       </th>
                     </tr>
                   </thead>
@@ -50,48 +60,19 @@ const CartPage = () => {
 
                 <div className="card-body border-top">
                   <p className="icontext">
-                    <i className="icon text-success fa fa-truck"></i> Free
-                    Delivery within 1-2 weeks
+                    <i className="icon text-success fa fa-truck"></i> Ücretsiz
+                    kargo
                   </p>
                 </div>
               </div>
             </aside>
             <aside className="col-lg-3">
-              <div className="card mb-3">
-                <div className="card-body">
-                  <form>
-                    <div className="form-group">
-                      <label>Have coupon?</label>
-                      <div className="input-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name=""
-                          placeholder="Coupon code"
-                        />
-                        <span className="input-group-append">
-                          <button className="btn btn-primary">Apply</button>
-                        </span>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              </div>
-
               <div className="card">
                 <div className="card-body">
                   <dl className="dlist-align">
-                    <dt>Total price:</dt>
-                    <dd className="text-right">$69.97</dd>
-                  </dl>
-                  <dl className="dlist-align">
-                    <dt>Discount:</dt>
-                    <dd className="text-right text-danger">- $10.00</dd>
-                  </dl>
-                  <dl className="dlist-align">
-                    <dt>Total:</dt>
+                    <dt>Toplam:</dt>
                     <dd className="text-right text-dark b">
-                      <strong>$59.97</strong>
+                      <strong>₺{toplamTutar.toFixed(2)}</strong>
                     </dd>
                   </dl>
                   <hr />
@@ -99,11 +80,10 @@ const CartPage = () => {
                     <img src="/images/misc/payments.png" height="26" alt="" />
                   </p>
                   <a href="#" className="btn btn-primary btn-block">
-                    {" "}
-                    Make Purchase{" "}
+                    Ödeme Yap
                   </a>
                   <a href="#" className="btn btn-light btn-block">
-                    Continue Shopping
+                    Alışverişe Devam Et
                   </a>
                 </div>
               </div>

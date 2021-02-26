@@ -2,6 +2,11 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
+const session = require("express-session");
+
 const app = express();
 const cors = require("cors");
 // cors : farklı klasördeki uygulamaları birbirine bağlar
@@ -22,6 +27,18 @@ mongoose.connect(process.env.BAGLANTI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+mongoose.set("useCreateIndex", true);
+app.use(
+  session({
+    secret: "Techproeducation - WebDeveloper",
+    resave: true,
+    saveUninitialized: true,
+    name: "kullanici_bilgileri",
+    proxy: true,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 ///////// MONGODB ŞEMALARI - BAŞLANGIÇ
 const urunSema = {
@@ -75,12 +92,42 @@ const kategoriSema = {
   kategori_aciklama: String,
 };
 
+const kullaniciSema = new mongoose.Schema({
+  isim: String,
+  soyisim: String,
+  email: String,
+  sifre: String,
+  adres: String,
+  telefon: String,
+  cinsiyet: String,
+});
+// passport local mongoose'a kullanici şemasındaki kullanıcı adı ve şifre bölümlerini tanıttık ki
+// kayıt işlemlerinde, şifreyeleyeceği alanı bilsin. giriş işlemlerinde de kontrol edeceği alanları bilsin.
+kullaniciSema.plugin(passportLocalMongoose, {
+  usernameField: "email",
+  passwordField: "sifre",
+});
+
 ///////// MONGODB ŞEMALARI - BİTİŞ
 
 ///////// MONGODB MODELLERİ - BAŞLANGIÇ
 const Urun = mongoose.model("Urun", urunSema);
 const Yorum = mongoose.model("Yorum", yorumSema);
 const Kategori = mongoose.model("Kategori", kategoriSema);
+const Kullanici = mongoose.model("Kullanici", kullaniciSema);
+passport.use(Kullanici.createStrategy());
+
+// Tarayıcıda cookie oluşturacak
+passport.serializeUser(function (user, done) {
+  done(null, user.id);
+});
+
+// Tarayıcıdan cookie alıp kullanıcı kontrol işlemi gerçekleştireceğiz.
+passport.deserializeUser(function (id, done) {
+  Kullanici.findById(id, function (err, user) {
+    done(err, user);
+  });
+});
 ///////// MONGODB MODELLERİ - BİTİŞ
 
 app.get("/", function (req, res) {
@@ -424,5 +471,65 @@ app.get("/api/kategori_liste", function (req, res) {
     }
   });
 });
+
+////////////////////////              KULLANICI İŞLEMLERİ     //////////////////////////////
+app.post("/api/kullanici/olusturma", function (req, res) {
+  Kullanici.register(
+    {
+      isim: req.body.isim,
+      soyisim: req.body.soyisim,
+      email: req.body.email,
+      adres: req.body.adres,
+      telefon: req.body.telefon,
+      cinsiyet: req.body.cinsiyet,
+    },
+    req.body.sifre,
+    function (err, gelenVeri) {
+      if (err) {
+        if (err.name === "UserExistsError") {
+          res.send({ sonuc: "email" });
+        } else {
+          res.send({ sonuc: "hata" });
+        }
+      } else {
+        passport.authenticate("local")(req, res, function () {
+          res.send({ sonuc: "başarılı" });
+        });
+      }
+    }
+  );
+});
+
+app.post("/api/kullanici/giris", function (req, res) {
+  var kullanici = new Kullanici({
+    email: req.body.email,
+    sifre: req.body.sifre,
+  });
+
+  req.login(kullanici, function (err) {
+    if (err) {
+      res.send({ sonuc: "hata" });
+    } else {
+      passport.authenticate("local")(req, res, function () {
+        res.send({ sonuc: "başarılı" });
+      });
+    }
+  });
+});
+
+app.get("/api/kullanici/cikis", function (req, res) {
+  req.logout();
+  res.send({ sonuc: "başarılı" });
+});
+
+app.get("/api/kullanici/giriskontrol", function (req, res) {
+  if (req.isAuthenticated()) {
+    res.send({ sonuc: true });
+  } else {
+    res.send({ sonuc: false });
+  }
+});
+
+app.get("/api/kullanici/bilgiler", function (req, res) {});
 
 app.listen(5000);
