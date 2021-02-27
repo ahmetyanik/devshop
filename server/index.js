@@ -8,18 +8,19 @@ const passportLocalMongoose = require("passport-local-mongoose");
 const session = require("express-session");
 
 const app = express();
-const cors = require("cors");
 // cors : farklı klasördeki uygulamaları birbirine bağlar
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+const cors = require("cors");
 
 app.use(
   cors({
     origin: "http://localhost:3000",
-    methods: "GET, PUT, PATCH, POST, DELETE",
+    methods: "GET,HEAD, PUT, PATCH, POST, DELETE",
     credentials: true,
   })
 );
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
 
 const Schema = mongoose.Schema;
 
@@ -82,6 +83,7 @@ const yorumSema = {
   tarih: String,
   kullanici_id: String,
   yildiz: Number,
+  onay: Number,
   like: Number,
   dislike: Number,
 };
@@ -379,7 +381,7 @@ app.get("/api/yeniurunler", function (req, res) {
 
 ////////////////////////               YORUMLAR                ////////////////////////////////
 app.get("/api/yorumlar/:id", function (req, res) {
-  Yorum.find({ urun_id: req.params.id }, function (err, gelenVeri) {
+  Yorum.find({ urun_id: req.params.id, onay: 1 }, function (err, gelenVeri) {
     if (!err) {
       res.send(gelenVeri);
     } else {
@@ -393,33 +395,47 @@ app.get("/api/yorumlar/:id", function (req, res) {
 });
 
 app.post("/api/yorum", function (req, res) {
+  var tarih = new Date();
+  var yeniTarih =
+    tarih.getFullYear() + "/" + (tarih.getMonth() + 1) + "/" + tarih.getDate();
+
   var yorum = new Yorum({
     urun_id: req.body.urun_id,
     isim: req.body.isim,
     icerik: req.body.icerik,
-    tarih: "25 Şubat",
+    tarih: yeniTarih,
     kullanici_id: req.body.kullanici_id,
     yildiz: req.body.yildiz,
+    onay: 0,
     like: 0,
     dislike: 0,
   });
 
-  /*
-
-  3 yorum 5-4-3
-  4 yorum 5-4-3-1
-  4 -> 3.25
-
-  */
-
   yorum.save(function (err) {
     if (!err) {
-      //// daha sonra..
+      res.send({ sonuc: true });
     } else {
       res.send({ sonuc: "hata" });
     }
   });
 });
+
+// id'si bilinen bir ürüne yapılan yorumların "yildiz" fieldında rakamların toplamı (sum).
+// id'si bilinen ürüne yapılan toplam yorum sayısı (yorumsayisi)
+app.get("/api/yorum/puan/:id", function (req, res) {
+  Yorum.aggregate([
+    {
+      $group: {
+        _id: req.params.id,
+        sum: { $sum: "$yildiz" },
+        yorumsayisi: { $sum: 1 },
+      },
+    },
+  ]).then(function (gelenVeri) {
+    res.send(gelenVeri[0]);
+  });
+});
+///// **** ONAY : 1 ayarlaması yapılacak
 
 /////////////////////////////   KATEGORİ API     ///////////////
 
@@ -501,19 +517,22 @@ app.post("/api/kullanici/olusturma", function (req, res) {
 });
 
 app.post("/api/kullanici/giris", function (req, res) {
-  var kullanici = new Kullanici({
+  const kullanici = new Kullanici({
     email: req.body.email,
     sifre: req.body.sifre,
   });
 
   req.login(kullanici, function (err) {
     if (err) {
-      res.send({ sonuc: "hata" });
-    } else {
-      passport.authenticate("local")(req, res, function () {
-        res.send({ sonuc: "başarılı" });
+      res.send({
+        sonuc: false,
       });
-    }
+    } else
+      passport.authenticate("local")(req, res, function () {
+        res.send({
+          sonuc: true,
+        });
+      });
   });
 });
 
@@ -523,8 +542,9 @@ app.get("/api/kullanici/cikis", function (req, res) {
 });
 
 app.get("/api/kullanici/giriskontrol", function (req, res) {
+  console.log(req.isAuthenticated());
   if (req.isAuthenticated()) {
-    res.send({ sonuc: true });
+    res.send({ sonuc: true, isim: req.user.isim, id: req.user._id });
   } else {
     res.send({ sonuc: false });
   }

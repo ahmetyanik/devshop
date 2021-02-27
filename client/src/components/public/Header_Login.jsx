@@ -15,7 +15,7 @@ const Header_Login = () => {
         withCredentials: true,
       })
       .then(function (gelenVeri) {
-        console.log(gelenVeri.data.sonuc);
+        console.log("giriş yapıldı mı :", gelenVeri.data);
         if (gelenVeri.data.sonuc === true) {
           setDurum(1);
         } else {
@@ -33,6 +33,7 @@ const Header_Login = () => {
       })
       .then(function (gelenVeri) {
         setDurum(2);
+        window.location.reload();
       });
   }
 
@@ -52,7 +53,9 @@ const Header_Login = () => {
           <React.StrictMode>
             <a href="/profilim">Profilim</a>
             <span className="dark-transp"> | </span>
-            <span onClick={cikisYap}>Çıkış Yap</span>
+            <a onClick={cikisYap} href="#">
+              Çıkış Yap
+            </a>
           </React.StrictMode>
         )}
       </div>

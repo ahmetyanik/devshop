@@ -2,9 +2,48 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Product_Comment from "./Product_Comment";
 import axios from "axios";
+import Product_CreateComment from "./Product_CreateComment";
+import Poruduct_CommentAlert from "./Product_CommentAlert";
 
 const Product_Comments = () => {
   const [yorumlar, setYorumlar] = useState([]);
+  const [girisYapildimi, setGirisYapildimi] = useState(0);
+  const [uye, setUye] = useState({
+    isim: "",
+    id: "",
+  });
+
+  /*
+    0 : yükleniyor
+    1 : giriş yapılmış.
+    2 : giriş yapılmamış.
+  */
+  const [istatistiktik, setIstatistik] = useState({
+    yorumsayisi: 1,
+    toplampuan: 0,
+  });
+
+  function girisKontrol() {
+    axios
+      .get("http://localhost:5000/api/kullanici/giriskontrol", {
+        withCredentials: true,
+      })
+      .then(function (gelenVeri) {
+        console.log("giriş yapıldı mı :", gelenVeri.data.sonuc);
+        if (gelenVeri.data.sonuc === true) {
+          setUye({
+            isim: gelenVeri.data.isim,
+            id: gelenVeri.data.id,
+          });
+          setGirisYapildimi(1);
+        } else {
+          setGirisYapildimi(2);
+        }
+      });
+  }
+
+  useEffect(girisKontrol, []);
+
   const parametreler = useParams();
 
   function yorumlariAl() {
@@ -14,6 +53,19 @@ const Product_Comments = () => {
     });
   }
 
+  function yorumPuan() {
+    var adres = "http://localhost:5000/api/yorum/puan/" + parametreler.id;
+    axios
+      .get(adres)
+      .then(function (gelenVeri) {
+        setIstatistik({
+          yorumsayisi: gelenVeri.data.yorumsayisi,
+          toplampuan: gelenVeri.data.sum,
+        });
+      })
+      .catch(function (error) {});
+  }
+  useEffect(yorumPuan, []);
   useEffect(yorumlariAl, []);
 
   return (
@@ -24,7 +76,15 @@ const Product_Comments = () => {
             <h3>Ürün Yorumları </h3>
             <div className="rating-wrap">
               <ul className="rating-stars stars-lg">
-                <li style={{ width: "80%" }} className="stars-active">
+                <li
+                  style={{
+                    width: `${
+                      (istatistiktik.toplampuan / istatistiktik.yorumsayisi) *
+                      20
+                    }%`,
+                  }}
+                  className="stars-active"
+                >
                   <img src="../images/icons/stars-active.svg" alt="" />
                 </li>
                 <li>
@@ -32,11 +92,18 @@ const Product_Comments = () => {
                 </li>
               </ul>
               <strong className="label-rating text-lg">
-                4.0
-                <span className="text-muted">| {yorumlar.length} yorum</span>
+                {(istatistiktik.toplampuan / istatistiktik.yorumsayisi).toFixed(
+                  1
+                )}
+                <span className="text-muted"> | {yorumlar.length} yorum</span>
               </strong>
             </div>
           </header>
+
+          {girisYapildimi === 1 && (
+            <Product_CreateComment uyeid={uye.id} uyeisim={uye.isim} />
+          )}
+          {girisYapildimi === 2 && <Poruduct_CommentAlert />}
 
           {yorumlar.map(function (yorum) {
             return (
