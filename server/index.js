@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const session = require("express-session");
+const stripe = require("stripe")(process.env.STRIPE);
 
 const app = express();
 // cors : farklı klasördeki uygulamaları birbirine bağlar
@@ -110,6 +111,16 @@ kullaniciSema.plugin(passportLocalMongoose, {
   passwordField: "sifre",
 });
 
+const siparisSema = {
+  takip_no: String,
+  tutar: Number,
+  kullanici_id: String,
+  urunler: [],
+  odeme_id: String,
+  tarih: Date,
+  durum: [],
+};
+
 ///////// MONGODB ŞEMALARI - BİTİŞ
 
 ///////// MONGODB MODELLERİ - BAŞLANGIÇ
@@ -118,6 +129,7 @@ const Yorum = mongoose.model("Yorum", yorumSema);
 const Kategori = mongoose.model("Kategori", kategoriSema);
 const Kullanici = mongoose.model("Kullanici", kullaniciSema);
 passport.use(Kullanici.createStrategy());
+const Siparis = mongoose.model("Siparis", siparisSema);
 
 // Tarayıcıda cookie oluşturacak
 passport.serializeUser(function (user, done) {
@@ -425,13 +437,20 @@ app.post("/api/yorum", function (req, res) {
 app.get("/api/yorum/puan/:id", function (req, res) {
   Yorum.aggregate([
     {
+      $match: {
+        urun_id: req.params.id,
+        onay: 1,
+      },
+    },
+    {
       $group: {
-        _id: req.params.id,
+        _id: new mongoose.Types.ObjectId("60369eb50391e42b105be0f2"),
         sum: { $sum: "$yildiz" },
         yorumsayisi: { $sum: 1 },
       },
     },
   ]).then(function (gelenVeri) {
+    console.log(gelenVeri[0]);
     res.send(gelenVeri[0]);
   });
 });
@@ -551,5 +570,64 @@ app.get("/api/kullanici/giriskontrol", function (req, res) {
 });
 
 app.get("/api/kullanici/bilgiler", function (req, res) {});
+
+/////////////////////////////        ÖDEME İŞLEMLERİ         ///////////////////////////
+const calculateOrderAmount = (items) => {
+  var toplam = 0;
+  items.forEach((element) => {
+    toplam += parseInt(element.fiyat * 100) * element.miktar;
+  });
+
+  return toplam;
+};
+app.post("/create-payment-intent", async (req, res) => {
+  const { items } = req.body;
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: calculateOrderAmount(items),
+    currency: "usd",
+  });
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+
+////////////////////////////      SİPARİŞ İŞLEMLERİ          ///////////////////////////
+app.post("/api/siparis/olustur", function (req, res) {
+  const urunler = req.body.urunler;
+  const odeme_id = req.body.odemeid;
+  const kullanici_id = "11111111111";
+  const tarih = new Date();
+  const takip_no =
+    tarih.getFullYear() +
+    "" +
+    (tarih.getMonth() + 1) +
+    "" +
+    tarih.getDate() +
+    "-" +
+    parseInt(Math.random() * 90000 + 1000);
+  const tutar = calculateOrderAmount(urunler) / 100;
+
+  var siparis = new Siparis({
+    tutar: tutar,
+    urunler: urunler,
+    takip_no: takip_no,
+    tarih: tarih,
+    odeme_id: odeme_id,
+    kullanici_id: kullanici_id,
+  });
+
+  siparis.save(function (err) {
+    if (!err) {
+      res.send({
+        sonuc: true,
+        takip_no: takip_no,
+      });
+    } else {
+      res.send({
+        sonuc: false,
+      });
+    }
+  });
+});
 
 app.listen(5000);

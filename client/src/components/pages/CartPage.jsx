@@ -1,5 +1,6 @@
 import React from "react";
 import { useCookies } from "react-cookie";
+import { Link } from "react-router-dom";
 import CartPage_Product from "../public/CartPage_Product";
 import Footer from "../public/Footer";
 import Header from "../public/Header";
@@ -79,9 +80,15 @@ const CartPage = () => {
                   <p className="text-center mb-3">
                     <img src="/images/misc/payments.png" height="26" alt="" />
                   </p>
-                  <a href="#" className="btn btn-primary btn-block">
+                  <Link
+                    to={{
+                      pathname: "/odeme",
+                      state: cookies.sepet,
+                    }}
+                    className="btn btn-primary btn-block"
+                  >
                     Ödeme Yap
-                  </a>
+                  </Link>
                   <a href="#" className="btn btn-light btn-block">
                     Alışverişe Devam Et
                   </a>

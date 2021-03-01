@@ -58,10 +58,13 @@ const Product_Comments = () => {
     axios
       .get(adres)
       .then(function (gelenVeri) {
-        setIstatistik({
-          yorumsayisi: gelenVeri.data.yorumsayisi,
-          toplampuan: gelenVeri.data.sum,
-        });
+        console.log(gelenVeri);
+        if (gelenVeri.data.yorumsayisi !== undefined) {
+          setIstatistik({
+            yorumsayisi: gelenVeri.data.yorumsayisi,
+            toplampuan: gelenVeri.data.sum,
+          });
+        }
       })
       .catch(function (error) {});
   }

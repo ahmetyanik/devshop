@@ -15,7 +15,6 @@ const Header_Login = () => {
         withCredentials: true,
       })
       .then(function (gelenVeri) {
-        console.log("giriş yapıldı mı :", gelenVeri.data);
         if (gelenVeri.data.sonuc === true) {
           setDurum(1);
         } else {

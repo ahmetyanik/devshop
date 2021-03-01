@@ -8,6 +8,12 @@ import LoginPage from "./components/pages/LoginPage.jsx";
 import ProductPage from "./components/pages/ProductPage.jsx";
 import RegisterPage from "./components/pages/RegisterPage.jsx";
 import { CookiesProvider } from "react-cookie";
+import PaymentPage from "./components/pages/PaymentPage.jsx";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+const promise = loadStripe(
+  "pk_test_51INGWaEKIejjwtwZG64KMynkwBQHXzXXuBvTugXlCaLAYMz54K17DfnT0jpAcxbQ5KJonZua4ryZn88QKozYhUV100zYmIoFNH"
+);
 
 ReactDOM.render(
   <CookiesProvider>
@@ -29,6 +35,11 @@ ReactDOM.render(
       </Route>
       <Route path="/giris">
         <LoginPage />
+      </Route>
+      <Route path="/odeme">
+        <Elements stripe={promise}>
+          <PaymentPage />
+        </Elements>
       </Route>
     </Router>
   </CookiesProvider>,
